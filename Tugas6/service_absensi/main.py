@@ -5,23 +5,26 @@ from typing import List
 app = FastAPI()
 
 # In-memory database
-absensi_db = []
+attendance_db = []
 
-class Absensi(BaseModel):
+class Attendance(BaseModel):
     id: int
     karyawan_id: int
     tanggal: str
-    status: str  # "Hadir" or "Tidak Hadir"
+    status: str  # "Check-in" or "Check-out"
 
-@app.get("/absensi", response_model=List[Absensi])
-def get_absensi():
-    return absensi_db
+@app.post("/attendance/check-in", response_model=Attendance)
+def check_in(attendance: Attendance):
+    attendance.status = "Check-in"
+    attendance_db.append(attendance)
+    return attendance
 
-@app.post("/absensi", response_model=Absensi)
-def add_absensi(absensi: Absensi):
-    absensi_db.append(absensi)
-    return absensi
+@app.post("/attendance/check-out", response_model=Attendance)
+def check_out(attendance: Attendance):
+    attendance.status = "Check-out"
+    attendance_db.append(attendance)
+    return attendance
 
-@app.get("/absensi/{karyawan_id}", response_model=List[Absensi])
-def get_absensi_by_karyawan(karyawan_id: int):
-    return [absensi for absensi in absensi_db if absensi.karyawan_id == karyawan_id]
+@app.get("/attendance/{employeeId}", response_model=List[Attendance])
+def get_attendance_history(employeeId: int):
+    return [record for record in attendance_db if record.karyawan_id == employeeId]

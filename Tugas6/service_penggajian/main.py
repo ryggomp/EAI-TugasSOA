@@ -1,27 +1,26 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
 
 # In-memory database
-penggajian_db = []
+payroll_db = []
 
-class Penggajian(BaseModel):
+class Payroll(BaseModel):
     id: int
     karyawan_id: int
     bulan: str
     total_gaji: float
 
-@app.get("/penggajian", response_model=List[Penggajian])
-def get_penggajian():
-    return penggajian_db
+@app.get("/payroll/{employeeId}", response_model=List[Payroll])
+def get_payroll_by_employee(employeeId: int):
+    result = [payroll for payroll in payroll_db if payroll.karyawan_id == employeeId]
+    if not result:
+        raise HTTPException(status_code=404, detail="Payroll not found for this employee")
+    return result
 
-@app.post("/penggajian", response_model=Penggajian)
-def add_penggajian(penggajian: Penggajian):
-    penggajian_db.append(penggajian)
-    return penggajian
-
-@app.get("/penggajian/{karyawan_id}", response_model=List[Penggajian])
-def get_penggajian_by_karyawan(karyawan_id: int):
-    return [penggajian for penggajian in penggajian_db if penggajian.karyawan_id == karyawan_id]
+@app.post("/payroll", response_model=Payroll)
+def process_payroll(payroll: Payroll):
+    payroll_db.append(payroll)
+    return payroll
